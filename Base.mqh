@@ -20,6 +20,10 @@ private:
     ENUM_VARIABLES_FLAGS   m_flag;              // flag variables
     string                 m_values[];          // values array for flag variables
     int                    m_values_total;      // values array size
+private:
+    //--- Functions to control working with m_values array
+    int              Add(const string value);
+    string           Sub(void);
 public:
                      CBase(void);
                     ~CBase(void);
@@ -62,5 +66,32 @@ int CBase::Variables(string &array[])
     ArrayCopy(array,m_values);
 //--- return values size
     return(m_values_total);
+   }
+//+------------------------------------------------------------------+
+//| Add value to m_values array                                      |
+//+------------------------------------------------------------------+
+int CBase::Add(const string value)
+   {
+//--- resize m_values array
+    ArrayResize(m_values,m_values_total + 1);
+//--- add value
+    m_values[m_values_total] = value;
+//--- update m_values_total
+    m_values_total ++;
+//--- return values size
+    return(m_values_total);
+   }
+//+------------------------------------------------------------------+
+//| Sub value from m_values array                                    |
+//+------------------------------------------------------------------+
+string CBase::Sub(void)
+   {
+//--- get value
+    string value = m_values[0];
+//--- remove value from m_values array and update m_values_total
+    if(ArrayRemove(m_values,0,1))
+        m_values_total --;
+//--- return value
+    return(value);
    }
 //+------------------------------------------------------------------+
