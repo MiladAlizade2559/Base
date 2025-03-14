@@ -46,20 +46,59 @@ private:
     string           ObjectArrayToString(T &array[],const string delimiter_obj = ",",const string delimiter = "\n");
     //--- Functions to control working with variables
     template<typename T>
-    void              Variable(T &var,const string var_name);
-    void              VariableBool(bool &var,const string var_name);
+    void             Variable(T &var,const string var_name);
+    void             VariableBool(bool &var,const string var_name);
     template<typename T>
-    void              VariableEnum(T &var,const string var_name);
+    void             VariableEnum(T &var,const string var_name);
     template<typename T>
-    void              VariableObject(T &var,const string var_name,const string delimiter = ",");
+    void             VariableObject(T &var,const string var_name,const string delimiter = ",");
     //--- Functions to control working with array variables
     template<typename T>
-    void              VariableArray(T &array[],const string var_name,const string delimiter = ",");
-    void              VariableBoolArray(bool &array[],const string var_name,const string delimiter = ",");
+    void             VariableArray(T &array[],const string var_name,const string delimiter = ",");
+    void             VariableBoolArray(bool &array[],const string var_name,const string delimiter = ",");
     template<typename T>
-    void              VariableEnumArray(T &array[],const string var_name,const string delimiter = ",");
+    void             VariableEnumArray(T &array[],const string var_name,const string delimiter = ",");
     template<typename T>
-    void              VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n");
+    void             VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n");
+protected:
+    //--- Functions to control working with variables of any type
+    void             UChar(uchar &var,const string var_name)               {Variable(var,var_name);}
+    void             Char(char &var,const string var_name)                 {Variable(var,var_name);}
+    void             UShort(ushort &var,const string var_name)             {Variable(var,var_name);}
+    void             Short(short &var,const string var_name)               {Variable(var,var_name);}
+    void             UInt(uint &var,const string var_name)                 {Variable(var,var_name);}
+    void             Int(int &var,const string var_name)                   {Variable(var,var_name);}
+    void             ULong(ulong &var,const string var_name)               {Variable(var,var_name);}
+    void             Long(long &var,const string var_name)                 {Variable(var,var_name);}
+    void             Float(float &var,const string var_name)               {Variable(var,var_name);}
+    void             Double(double &var,const string var_name)             {Variable(var,var_name);}
+    void             Bool(bool &var,const string var_name)                 {VariableBool(var,var_name);}
+    void             Color(color &var,const string var_name)               {Variable(var,var_name);}
+    void             DateTime(datetime &var,const string var_name)         {Variable(var,var_name);}
+    void             String(string &var,const string var_name)             {Variable(var,var_name);}
+    template<typename T>
+    void             Enum(T &var,const string var_name)                    {VariableEnum(var,var_name);}
+    template<typename T>
+    void             Object(T &var,const string var_name)                  {VariableObject(var,var_name);}
+    //--- Functions to control working with array variables of any type
+    void             UCharArray(uchar &var[],const string var_name)        {VariableArray(var,var_name);}
+    void             CharArray(char &var[],const string var_name)          {VariableArray(var,var_name);}
+    void             UShortArray(ushort &var[],const string var_name)      {VariableArray(var,var_name);}
+    void             ShortArray(short &var[],const string var_name)        {VariableArray(var,var_name);}
+    void             UIntArray(uint &var[],const string var_name)          {VariableArray(var,var_name);}
+    void             IntArray(int &var[],const string var_name)            {VariableArray(var,var_name);}
+    void             ULongArray(ulong &var[],const string var_name)        {VariableArray(var,var_name);}
+    void             LongArray(long &var[],const string var_name)          {VariableArray(var,var_name);}
+    void             FloatArray(float &var[],const string var_name)        {VariableArray(var,var_name);}
+    void             DoubleArray(double &var[],const string var_name)      {VariableArray(var,var_name);}
+    void             BoolArray(bool &var[],const string var_name)          {VariableBoolArray(var,var_name);}
+    void             ColorArray(color &var[],const string var_name)        {VariableArray(var,var_name);}
+    void             DateTimeArray(datetime &var[],const string var_name)  {VariableArray(var,var_name);}
+    void             StringArray(string &var[],const string var_name)      {VariableArray(var,var_name);}
+    template<typename T>
+    void             EnumArray(T &var[],const string var_name)             {VariableEnumArray(var,var_name);}
+    template<typename T>
+    void             ObjectArray(T &var[],const string var_name)           {VariableObjectArray(var,var_name);}
 public:
                      CBase(void);
                     ~CBase(void);
