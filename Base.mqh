@@ -24,6 +24,26 @@ private:
     //--- Functions to control working with m_values array
     int              Add(const string value);
     string           Sub(void);
+    //--- Functions to control the work of converting strings to any type
+    template<typename T>
+    int              StringToArray(const string value,T &array[],const string delimiter = ",");
+    int              StringToBoolArray(const string value,bool &array[],const string delimiter = ",");
+    template<typename T>
+    int              StringToEnumArray(const string value,T &array[],const string delimiter = ",");
+    template<typename T>
+    int              StringToObject(const string value,T &var,const string delimiter = ",");
+    template<typename T>
+    int              StringToObjectArray(const string value,T &array[],const string delimiter_obj = ",",const string delimiter = "\n");
+    //--- Functions to control the conversion of any type to a string
+    template<typename T>
+    string           ArrayToString(const T &array[],const string delimiter = ",");
+    string           BoolArrayToString(const bool &array[],const string delimiter = ",");
+    template<typename T>
+    string           EnumArrayToString(const T &array[],const string delimiter = ",");
+    template<typename T>
+    string           ObjectToString(T &var,const string delimiter = ",");
+    template<typename T>
+    string           ObjectArrayToString(T &array[],const string delimiter_obj = ",",const string delimiter = "\n");
 public:
                      CBase(void);
                     ~CBase(void);
@@ -93,5 +113,188 @@ string CBase::Sub(void)
         m_values_total --;
 //--- return value
     return(value);
+   }
+//+------------------------------------------------------------------+
+//| Convert string to any type except bool, enum and object          |
+//+------------------------------------------------------------------+
+template<typename T>
+int CBase::StringToArray(const string value,T &array[],const string delimiter = ",")
+   {
+//--- get string between [ and ] from value string
+    string values = StringSubstr(value,1,-1);
+    values = StringSubstr(values,0,StringLen(values) - 1);
+//--- splite value string with delimiter
+    string result[];
+    int size = StringSplit(values,StringGetCharacter(delimiter,0),result);
+//--- resize array
+    ArrayResize(array,size);
+//--- convert string to T type and add to array
+    for(int i = 0;i < size;i++)
+       {
+        array[i] = (T)result[i];
+       }
+//--- retutn array size
+    return(size);
+   }
+//+------------------------------------------------------------------+
+//| Convert string to type bool                                      |
+//+------------------------------------------------------------------+
+int CBase::StringToBoolArray(const string value,bool &array[],const string delimiter = ",")
+   {
+//--- get string between [ and ] from value string
+    string values = StringSubstr(value,1,-1);
+    values = StringSubstr(values,0,StringLen(values) - 1);
+//--- splite value string with delimiter
+    string result[];
+    int size = StringSplit(values,StringGetCharacter(delimiter,0),result);
+//--- resize array
+    ArrayResize(array,size);
+//--- convert string to T type and add to array
+    for(int i = 0;i < size;i++)
+       {
+        //--- compate result is true or not
+        array[i] = StringCompare(result[i],"true",false) == 0 ? true : false;
+       }
+//--- retutn array size
+    return(size);
+   }
+//+------------------------------------------------------------------+
+//| Convert string to any type enumerations                          |
+//+------------------------------------------------------------------+
+template<typename T>
+int CBase::StringToEnumArray(const string value,T &array[],const string delimiter = ",")
+   {
+//--- get string between [ and ] from value string
+    string values = StringSubstr(value,1,-1);
+    values = StringSubstr(values,0,StringLen(values) - 1);
+//--- splite value string with delimiter
+    string result[];
+    int size = StringSplit(values,StringGetCharacter(delimiter,0),result);
+//--- resize array
+    ArrayResize(array,size);
+//--- convert string to T type and add to array
+    for(int i = 0;i < size;i++)
+       {
+        //--- get string between ( and ) and convert to T enum type
+        array[i] = (T)StringSubstr(result[i],StringFind(result[i],"(",0) + 1,StringLen(result[i]));
+       }
+//--- retutn array size
+    return(size);
+   }
+//+------------------------------------------------------------------+
+//| Convert string to any type objects                               |
+//+------------------------------------------------------------------+
+template<typename T>
+int CBase::StringToObject(const string value,T &var,const string delimiter = ",")
+   {
+//--- convert value string to array string with delimiter
+    string values[];
+    int size = StringToArray(values,value,delimiter);
+//--- set values array to object values
+    return(var.Variables(SET_VALUES,values));
+   }
+//+------------------------------------------------------------------+
+//| Convert string to any type objects array                         |
+//+------------------------------------------------------------------+
+template<typename T>
+int CBase::StringToObjectArray(const string value,T &array[],const string delimiter_obj = ",",const string delimiter = "\n")
+   {
+//--- convert value string to array string with delimiter
+    string values[];
+    int size = StringToArray(values,value,delimiter);
+//--- resize object array
+    ArrayResize(array,size);
+//--- converting string to object with delimiter_obj
+    for(int i = 0; i < size; i++)
+       {
+        StringToObject(array[i],values[i],delimiter_obj);
+       }
+//--- return size array
+    return(size);
+   }
+//+------------------------------------------------------------------+
+//| Convert an array of any type except enum and object to string    |
+//+------------------------------------------------------------------+
+template<typename T>
+string CBase::ArrayToString(const T &array[],const string delimiter = ",")
+   {
+//--- get and check array size
+    int size = ArraySize(array);
+    if(size <= 0)
+        return("");
+//--- create value string and add first [ to value
+    string value = "[";
+//--- converting values array and add to value string + delimiter
+    for(int i = 0; i < size - 1; i++)
+       {
+        value += StringFormat("%s%s",(string)array[i],delimiter);
+       }
+//--- add values array to value string + ]
+    value += StringFormat("%s]",(string)array[size - 1]);
+//--- return value string
+    return(value);
+   }
+//+------------------------------------------------------------------+
+//| Converting an array from bool type to string                     |
+//+------------------------------------------------------------------+
+string CBase::BoolArrayToString(const bool &array[],const string delimiter = ",")
+   {
+//--- convering bool array to value string with delimiter
+    return(ArrayToString(array,delimiter));
+   }
+//+------------------------------------------------------------------+
+//| Converting an array from an enumerations type to string          |
+//+------------------------------------------------------------------+
+template<typename T>
+string CBase::EnumArrayToString(const T &array[],const string delimiter = ",")
+   {
+//--- get and check array size
+    int size = ArraySize(array);
+    if(size <= 0)
+        return("");
+//--- create value string and add first [ to value
+    string value = "[";
+//--- converting values array and add to value string + delimiter
+    for(int i = 0; i < size - 1; i++)
+       {
+        //--- add value enum to between ( )
+        value += StringFormat("%s(%d)%s",EnumToString(array[i]),array[i],delimiter);
+       }
+//--- add values array to value string + ]
+    value += StringFormat("%s(%d)]",EnumToString(array[size - 1]),array[size - 1]);
+//--- return value string
+    return(value);
+   }
+//+------------------------------------------------------------------+
+//| Converting an object type to string                              |
+//+------------------------------------------------------------------+
+template<typename T>
+string CBase::ObjectToString(T &var,const string delimiter = ",")
+   {
+//--- get values array from object
+    string values[];
+    var.Variables(GET_VALUES,values);
+//--- converting string array to value string with delimiter
+    return(ArrayToString(values,delimiter));
+   }
+//+------------------------------------------------------------------+
+//| Converting an array from an object type to string                |
+//+------------------------------------------------------------------+
+template<typename T>
+string CBase::ObjectArrayToString(T &array[],const string delimiter_obj = ",",const string delimiter = "\n")
+   {
+//--- create values
+    string values[];
+//--- get array size
+    int size = ArraySize(array);
+//--- resize values array
+    ArrayResize(values,size);
+//--- converting object values to string value with delimiter and add to values array
+    for(int i = 0; i < size; i++)
+       {
+        values[i] = ObjectToString(array[i],delimiter_obj);
+       }
+//--- converting values array to string value with delimiter
+    return(ArrayToString(values,delimiter));
    }
 //+------------------------------------------------------------------+
