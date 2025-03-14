@@ -44,6 +44,22 @@ private:
     string           ObjectToString(T &var,const string delimiter = ",");
     template<typename T>
     string           ObjectArrayToString(T &array[],const string delimiter_obj = ",",const string delimiter = "\n");
+    //--- Functions to control working with variables
+    template<typename T>
+    void              Variable(T &var,const string var_name);
+    void              VariableBool(bool &var,const string var_name);
+    template<typename T>
+    void              VariableEnum(T &var,const string var_name);
+    template<typename T>
+    void              VariableObject(T &var,const string var_name,const string delimiter = ",");
+    //--- Functions to control working with array variables
+    template<typename T>
+    void              VariableArray(T &array[],const string var_name,const string delimiter = ",");
+    void              VariableBoolArray(bool &array[],const string var_name,const string delimiter = ",");
+    template<typename T>
+    void              VariableEnumArray(T &array[],const string var_name,const string delimiter = ",");
+    template<typename T>
+    void              VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n");
 public:
                      CBase(void);
                     ~CBase(void);
@@ -64,7 +80,7 @@ CBase::~CBase(void)
    {
    }
 //+------------------------------------------------------------------+
-//| Vaiables working with variables flags                            |
+//| Variables working with variables flags                           |
 //+------------------------------------------------------------------+
 int CBase::Variables(const ENUM_VARIABLES_FLAGS flag,string &array[])
    {
@@ -78,7 +94,7 @@ int CBase::Variables(const ENUM_VARIABLES_FLAGS flag,string &array[])
     return(m_values_total);
    }
 //+------------------------------------------------------------------+
-//| Vaiables working with variables flags                            |
+//| Variables working with variables flags                           |
 //+------------------------------------------------------------------+
 int CBase::Variables(string &array[])
    {
@@ -189,7 +205,7 @@ int CBase::StringToObject(const string value,T &var,const string delimiter = ","
    {
 //--- convert value string to array string with delimiter
     string values[];
-    int size = StringToArray(values,value,delimiter);
+    int size = StringToArray(value,values,delimiter);
 //--- set values array to object values
     return(var.Variables(SET_VALUES,values));
    }
@@ -201,13 +217,13 @@ int CBase::StringToObjectArray(const string value,T &array[],const string delimi
    {
 //--- convert value string to array string with delimiter
     string values[];
-    int size = StringToArray(values,value,delimiter);
+    int size = StringToArray(value,values,delimiter);
 //--- resize object array
     ArrayResize(array,size);
 //--- converting string to object with delimiter_obj
     for(int i = 0; i < size; i++)
        {
-        StringToObject(array[i],values[i],delimiter_obj);
+        StringToObject(values[i],array[i],delimiter_obj);
        }
 //--- return size array
     return(size);
@@ -296,5 +312,286 @@ string CBase::ObjectArrayToString(T &array[],const string delimiter_obj = ",",co
        }
 //--- converting values array to string value with delimiter
     return(ArrayToString(values,delimiter));
+   }
+//+------------------------------------------------------------------+
+//| Working with variables of any type except bool, enum and object  |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::Variable(T &var,const string var_name)
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting value var to string and add to m_values array
+            Add((string)var);
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and converting value to var type
+            var = (T)Sub();
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with variables of type bool                              |
+//+------------------------------------------------------------------+
+void CBase::VariableBool(bool &var,const string var_name)
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(bool));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting value var to string and add to m_values array
+            Add((string)var);
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and converting value to var type
+            var = StringCompare(Sub(),"true",false) == 0 ? true : false;
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with variables of any type enumeration                   |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::VariableEnum(T &var,const string var_name)
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting value var to string and add to m_values array
+            Add(StringFormat("%s(%d)",EnumToString(var),var));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array
+            string value = Sub();
+            //--- converting value to var type
+            var = (T)StringSubstr(value,StringFind(value,"(",0) + 1,StringLen(value));
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with variables of any type objects                       |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::VariableObject(T &var,const string var_name,const string delimiter = ",")
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- get value string from object and add to m_values array
+            Add(ObjectToString(var,delimiter));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and set to object
+            StringToObject(Sub(),var,delimiter);
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with array variables of any type except bool,            |
+//| enum and object                                                  |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::VariableArray(T &array[],const string var_name,const string delimiter = ",")
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting array to string and add to m_values array
+            Add(ArrayToString(array,delimiter));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and set to array
+            StringToArray(Sub(),array,delimiter);
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with array variables of type bool                        |
+//+------------------------------------------------------------------+
+void CBase::VariableBoolArray(bool &array[],const string var_name,const string delimiter = ",")
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(bool));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting bool array to string and add to m_values array
+            Add(BoolArrayToString(array,delimiter));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and converting value to bool array
+            StringToBoolArray(Sub(),array,delimiter);
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with array variables of any type enumeration             |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::VariableEnumArray(T &array[],const string var_name,const string delimiter = ",")
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- converting enum array to string and add to m_values array
+            Add(EnumArrayToString(array,delimiter));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and converting value to enum array
+            StringToEnumArray(Sub(),array,delimiter);
+            break;
+           }
+       }
+   }
+//+------------------------------------------------------------------+
+//| Working with array variables of any type objects                 |
+//+------------------------------------------------------------------+
+template<typename T>
+void CBase::VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n")
+   {
+//--- check m_flag
+    switch(m_flag)
+       {
+        case GET_TYPES:
+           {
+            //--- geting var type and add to m_values array
+            Add(typename(T));
+            break;
+           }
+        case GET_NAMES:
+           {
+            //--- adding var name to m_values array
+            Add(var_name);
+            break;
+           }
+        case GET_VALUES:
+           {
+            //--- get value string from object array and add to m_values array
+            Add(ObjectArrayToString(var,delimiter_obj,delimiter));
+            break;
+           }
+        case SET_VALUES:
+           {
+            //--- geting value string from m_values array and set to object array
+            StringToObjectArray(Sub(),var,delimiter_obj,delimiter);
+            break;
+           }
+       }
    }
 //+------------------------------------------------------------------+
