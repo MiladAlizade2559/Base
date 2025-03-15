@@ -18,12 +18,14 @@ class CBase
    {
 private:
     ENUM_VARIABLES_FLAGS   m_flag;              // flag variables
+    bool                   m_compact_objects;   // is compact values in class or struct object
     string                 m_values[];          // values array for flag variables
     int                    m_values_total;      // values array size
 private:
     //--- Functions to control working with m_values array
     int              Add(const string value);
     string           Sub(void);
+protected:
     //--- Functions to control the work of converting strings to any type
     template<typename T>
     int              StringToArray(const string value,T &array[],const string delimiter = ",");
@@ -59,7 +61,7 @@ private:
     template<typename T>
     void             VariableEnumArray(T &array[],const string var_name,const string delimiter = ",");
     template<typename T>
-    void             VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n");
+    void             VariableObjectArray(T &array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n");
 protected:
     //--- Functions to control working with variables of any type
     void             UChar(uchar &var,const string var_name)               {Variable(var,var_name);}
@@ -103,7 +105,7 @@ public:
                      CBase(void);
                     ~CBase(void);
     //--- Functions to control working with variables
-    virtual int      Variables(const ENUM_VARIABLES_FLAGS flag,string &array[]);
+    virtual int      Variables(const ENUM_VARIABLES_FLAGS flag,string &array[],const bool compact_objs = false);
     int              Variables(string &array[]);
    };
 //+------------------------------------------------------------------+
@@ -121,10 +123,12 @@ CBase::~CBase(void)
 //+------------------------------------------------------------------+
 //| Variables working with variables flags                           |
 //+------------------------------------------------------------------+
-int CBase::Variables(const ENUM_VARIABLES_FLAGS flag,string &array[])
+int CBase::Variables(const ENUM_VARIABLES_FLAGS flag,string &array[],const bool compact_objs = false)
    {
 //--- set flag for working
     m_flag = flag;
+//--- set compact objects for working
+    m_compact_objects = compact_objs;
 //--- copy array to m_values array
     ArrayCopy(m_values,array);
 //--- set m_values total
@@ -165,7 +169,9 @@ int CBase::Add(const string value)
 string CBase::Sub(void)
    {
 //--- get value
-    string value = m_values[0];
+    string value;
+    if(m_values_total > 0)
+        value = m_values[0];
 //--- remove value from m_values array and update m_values_total
     if(ArrayRemove(m_values,0,1))
         m_values_total --;
@@ -367,7 +373,7 @@ void CBase::Variable(T &var,const string var_name)
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(var));
             break;
            }
         case GET_NAMES:
@@ -401,7 +407,7 @@ void CBase::VariableBool(bool &var,const string var_name)
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(bool));
+            Add(typename(var));
             break;
            }
         case GET_NAMES:
@@ -436,7 +442,7 @@ void CBase::VariableEnum(T &var,const string var_name)
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(var));
             break;
            }
         case GET_NAMES:
@@ -472,24 +478,61 @@ void CBase::VariableObject(T &var,const string var_name,const string delimiter =
        {
         case GET_TYPES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object
+                string data[];
+                var.Variables(GET_TYPES,data,m_compact_objects);
+                //--- add data array to m_values array
+                ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                break;
+               }
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(var));
             break;
            }
         case GET_NAMES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object
+                string data[];
+                var.Variables(GET_NAMES,data,m_compact_objects);
+                //--- add data array to m_values array
+                ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                break;
+               }
             //--- adding var name to m_values array
             Add(var_name);
             break;
            }
         case GET_VALUES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object
+                string data[];
+                var.Variables(GET_VALUES,data,m_compact_objects);
+                //--- add data array to m_values array
+                ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                break;
+               }
             //--- get value string from object and add to m_values array
             Add(ObjectToString(var,delimiter));
             break;
            }
         case SET_VALUES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- set values data to object
+                var.Variables(SET_VALUES,m_values,m_compact_objects);
+                break;
+               }
             //--- geting value string from m_values array and set to object
             StringToObject(Sub(),var,delimiter);
             break;
@@ -509,7 +552,7 @@ void CBase::VariableArray(T &array[],const string var_name,const string delimite
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(array));
             break;
            }
         case GET_NAMES:
@@ -543,7 +586,7 @@ void CBase::VariableBoolArray(bool &array[],const string var_name,const string d
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(bool));
+            Add(typename(array));
             break;
            }
         case GET_NAMES:
@@ -578,7 +621,7 @@ void CBase::VariableEnumArray(T &array[],const string var_name,const string deli
         case GET_TYPES:
            {
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(array));
             break;
            }
         case GET_NAMES:
@@ -605,31 +648,84 @@ void CBase::VariableEnumArray(T &array[],const string var_name,const string deli
 //| Working with array variables of any type objects                 |
 //+------------------------------------------------------------------+
 template<typename T>
-void CBase::VariableObjectArray(T &Array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n")
+void CBase::VariableObjectArray(T &array[],const string var_name,const string delimiter_obj = ",",const string delimiter = "\n")
    {
 //--- check m_flag
     switch(m_flag)
        {
         case GET_TYPES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object array
+                for(int i = 0; i < ArraySize(array); i++)
+                   {
+                    //--- get data
+                    string data[];
+                    array[i].Variables(GET_TYPES,data,m_compact_objects);
+                    //--- add data array to m_values array
+                    ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                   }
+                break;
+               }
             //--- geting var type and add to m_values array
-            Add(typename(T));
+            Add(typename(array));
             break;
            }
         case GET_NAMES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object array
+                for(int i = 0; i < ArraySize(array); i++)
+                   {
+                    //--- get data
+                    string data[];
+                    array[i].Variables(GET_NAMES,data,m_compact_objects);
+                    //--- add data array to m_values array
+                    ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                   }
+                break;
+               }
             //--- adding var name to m_values array
             Add(var_name);
             break;
            }
         case GET_VALUES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- get data from object array
+                for(int i = 0; i < ArraySize(array); i++)
+                   {
+                    //--- get data
+                    string data[];
+                    array[i].Variables(GET_VALUES,data,m_compact_objects);
+                    //--- add data array to m_values array
+                    ArrayCopy(m_values,data,m_values_total,0,WHOLE_ARRAY);
+                   }
+                break;
+               }
             //--- get value string from object array and add to m_values array
             Add(ObjectArrayToString(var,delimiter_obj,delimiter));
             break;
            }
         case SET_VALUES:
            {
+            //--- check compact objects
+            if(m_compact_objects)
+               {
+                //--- set data to object array from m_values array
+                for(int i = 0; i < ArraySize(array); i++)
+                   {
+                    //--- set data
+                    array[i].Variables(SET_VALUES,m_values,m_compact_objects);
+                   }
+                break;
+               }
             //--- geting value string from m_values array and set to object array
             StringToObjectArray(Sub(),var,delimiter_obj,delimiter);
             break;
