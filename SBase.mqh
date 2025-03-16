@@ -141,7 +141,8 @@ int SBase::Variables(const ENUM_VARIABLES_FLAGS flag,string &array[],const bool 
 int SBase::Variables(string &array[])
    {
 //--- copy m_values array to array
-    ArrayCopy(array,m_values,ArraySize(array),0,WHOLE_ARRAY);
+    ArrayRemove(array,0,WHOLE_ARRAY);
+    ArrayCopy(array,m_values,0,0,WHOLE_ARRAY);
 //--- remove m_values array
     ArrayRemove(m_values,0,WHOLE_ARRAY);
     m_values_total = 0;
@@ -478,7 +479,7 @@ void SBase::VariableObject(T &var,const string var_name,const string delimiter =
         case GET_TYPES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object
                 string data[];
@@ -494,7 +495,7 @@ void SBase::VariableObject(T &var,const string var_name,const string delimiter =
         case GET_NAMES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object
                 string data[];
@@ -510,7 +511,7 @@ void SBase::VariableObject(T &var,const string var_name,const string delimiter =
         case GET_VALUES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object
                 string data[];
@@ -526,7 +527,7 @@ void SBase::VariableObject(T &var,const string var_name,const string delimiter =
         case SET_VALUES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- set values data to object
                 var.Variables(SET_VALUES,m_values,m_compact_objects);
@@ -655,7 +656,7 @@ void SBase::VariableObjectArray(T &array[],const string var_name,const string de
         case GET_TYPES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object array
                 for(int i = 0; i < ArraySize(array); i++)
@@ -675,7 +676,7 @@ void SBase::VariableObjectArray(T &array[],const string var_name,const string de
         case GET_NAMES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object array
                 for(int i = 0; i < ArraySize(array); i++)
@@ -695,7 +696,7 @@ void SBase::VariableObjectArray(T &array[],const string var_name,const string de
         case GET_VALUES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- get data from object array
                 for(int i = 0; i < ArraySize(array); i++)
@@ -715,7 +716,7 @@ void SBase::VariableObjectArray(T &array[],const string var_name,const string de
         case SET_VALUES:
            {
             //--- check compact objects
-            if(m_compact_objects)
+            if(!m_compact_objects)
                {
                 //--- set data to object array from m_values array
                 for(int i = 0; i < ArraySize(array); i++)
